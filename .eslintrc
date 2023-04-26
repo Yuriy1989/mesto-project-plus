@@ -32,6 +32,9 @@
   "rules": {
       "import/extensions": [
           "error",
+          {
+            "allow": ["_id"]
+          },
           "ignorePackages",
           {
               "js": "never",
