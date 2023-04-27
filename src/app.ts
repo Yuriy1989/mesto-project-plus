@@ -1,29 +1,23 @@
-import http from "http"
-import {IncomingMessage, ServerResponse} from "http"
-const { PORT = 3000 } = process.env;
+import express from 'express'
+import { Request, Response } from 'express'
+// import { MongoClient } from 'mongodb'
+import mongoose from 'mongoose'
 
-const server = http.createServer((req: IncomingMessage, res: ServerResponse) => {
-  console.log(req.url);
-  console.log(req.method)
-  console.log(req.headers)
+const { PORT = 3000 } = process.env
+const app = express()
 
+mongoose.connect('mongodb://localhost:27017/mestodb')
 
-  res.writeHead(200, {
-    'Content-type': 'text/plain; charset=utf8'
-  })
-
-  res.end;
-});
-
-server.listen(PORT, () => {
-  console.log(`App listening on port ${PORT}`)
+app.get('/', (req: Request, res: Response) => {
+  res.send(
+     `<html>
+        <body>
+            <p>Ответ на сигнал из далёкого космоса</p>
+        </body>
+        </html>`
+  )
 })
 
-
-// import express from 'express'
-
-// const app = express();
-
-
-
-
+app.listen(PORT, () => {
+  console.log(`Сервер запущен на порту ${PORT}`)
+})
