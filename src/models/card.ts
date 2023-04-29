@@ -1,5 +1,14 @@
 import mongoose from "mongoose";
 
+export interface ICard {
+  name: string,
+  link: string,
+  owner: any,
+  likes: any,
+  createdAt: Date,
+}
+
+//схемы карточки
 const cardSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -23,6 +32,6 @@ const cardSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-})
+});
 
-export default mongoose.model('card', cardSchema)
+export default mongoose.model<ICard>('card', cardSchema);
