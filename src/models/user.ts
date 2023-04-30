@@ -1,10 +1,5 @@
 import mongoose from "mongoose";
-
-export interface IUser {
-  name: string,
-  about: string,
-  avatar: string,
-}
+import { IUser } from "../types";
 
 //схемы пользователя
 const userSchema = new mongoose.Schema({

@@ -1,12 +1,5 @@
 import mongoose from "mongoose";
-
-export interface ICard {
-  name: string,
-  link: string,
-  owner: any,
-  likes: any,
-  createdAt: Date,
-}
+import { ICard } from "../types";
 
 //схемы карточки
 const cardSchema = new mongoose.Schema({
@@ -27,6 +20,7 @@ const cardSchema = new mongoose.Schema({
   },
   likes: {
     type: [mongoose.Schema.Types.ObjectId],
+    default: [],
   },
   createdAt: {
     type: Date,
