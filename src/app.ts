@@ -22,19 +22,7 @@ app.use((req: Request, res: Response, next) => {
   next();
 })
 
-app.get('/', (req: Request, res: Response) => {
-  res.send(
-     `<html>
-        <body>
-            <p>Ответ на сигнал из далёкого космоса</p>
-        </body>
-        </html>`
-  )
-});
-
 app.use(router);
 
-
-app.listen(PORT, () => {
-  console.log(`Сервер запущен на порту ${PORT}`)
-});
+//запуск сервера
+app.listen(PORT);
