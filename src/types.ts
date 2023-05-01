@@ -1,9 +1,11 @@
 import { Request } from "express";
+const ObjectID = require("mongodb").ObjectID;
+type ObjectID = typeof import("mongodb").ObjectID;
 
 export interface ICard {
   name: string,
   link: string,
-  owner: any,
+  owner: ObjectID,
   createdAt: Date,
 }
 
