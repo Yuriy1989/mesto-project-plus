@@ -1,7 +1,7 @@
-import mongoose from "mongoose";
-import { IUser } from "../types";
+import mongoose from 'mongoose';
+import { IUser } from '../types';
 
-//схемы пользователя
+//  схемы пользователя
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -18,7 +18,7 @@ const userSchema = new mongoose.Schema({
   avatar: {
     type: String,
     required: true,
-  }
+  },
 });
 
 export default mongoose.model<IUser>('user', userSchema);

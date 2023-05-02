@@ -4,7 +4,7 @@ import cardsRouter from './cards';
 
 const router = Router();
 
-router.use("/", usersRouter);
-router.use("/", cardsRouter)
+router.use('/', usersRouter);
+router.use('/', cardsRouter);
 
 export default router;
