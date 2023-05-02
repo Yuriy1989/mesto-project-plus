@@ -1,7 +1,9 @@
 import { Request, Response } from 'express';
+import mongoose from 'mongoose';
 import User from '../models/user';
-import { ITestRequest } from 'types';
+import { ITestRequest } from '../types';
 import { BAD_REQUEST, CREATED, INTERNAL_SERVER_ERROR, NOT_FOUND, OK } from '../constants';
+
 
 //возвращает всех пользователей
 export const getUsers = async (req: Request, res: Response) => {
@@ -21,17 +23,21 @@ export const getUserById = async (req: Request, res: Response) => {
 
     if (!user) {
       const error = new Error("Пользователь по указанному _id не найден");
-      error.name = "NotFound";
+      error.name = "Not Found";
       throw error;
     }
 
     return res.status(200).send(user);
   } catch (error) {
-    if (error instanceof Error && error.name === "NotFound") {
+    if (error instanceof Error && error.name === "Not Found") {
       return res.status(NOT_FOUND).send({ message: error.message })
-    } else {
-      return res.status(INTERNAL_SERVER_ERROR).send({ message: "Ошибка на стороне сервера" })
     }
+
+    if (error instanceof mongoose.Error.CastError) {
+      return res.status(BAD_REQUEST).send({ message: error.message })
+    }
+
+    return res.status(INTERNAL_SERVER_ERROR).send({ message: "Ошибка на стороне сервера" })
   }
 }
 
@@ -50,9 +56,13 @@ export const addUser = async (req: Request, res: Response) => {
   } catch (error) {
     if (error instanceof Error && error.name === "Invalid parameters") {
       return res.status(BAD_REQUEST).send({ message: error.message })
-    } else {
-      return res.status(INTERNAL_SERVER_ERROR).send({ message: "Ошибка на стороне сервера" })
     }
+
+    if (error instanceof mongoose.Error.ValidationError) {
+      return res.status(BAD_REQUEST).send({ message: error.message })
+    }
+
+    return res.status(INTERNAL_SERVER_ERROR).send({ message: "Ошибка на стороне сервера" })
   }
 }
 
@@ -60,36 +70,44 @@ export const addUser = async (req: Request, res: Response) => {
 export const updateUserProfile = async (req: ITestRequest, res: Response) => {
   const id = req.user?._id;
   const {name, about} = req.body;
-
-  if(!name || !about ) {
-    const error = new Error("Переданы некорректные данные при обновлении профиля");
-    error.name = "Invalid parameters";
-    throw error;
-  }
-
   try {
+    if(!name || !about ) {
+      const error = new Error("Переданы некорректные данные при обновлении профиля");
+      error.name = "Invalid parameters";
+      throw error;
+    }
+
     const updateUser = await User.findByIdAndUpdate(
       id,
       {
         name: req.body.name,
         about: req.body.about,
-      }
+      },
+      {new: true}
     )
 
     if (!updateUser) {
       const error = new Error("Пользователь с указанным _id не найден");
-      error.name = "NotFound";
+      error.name = "Not Found";
       throw error;
     }
 
-    return res.status(201).send(updateUser)
+    return res.status(OK).send(updateUser)
   } catch (error) {
     if (error instanceof Error && error.name === "Invalid parameters") {
       return res.status(BAD_REQUEST).send({ message: error.message })
     }
 
-    if (error instanceof Error && error.name === "NotFound") {
+    if (error instanceof Error && error.name === "Not Found") {
       return res.status(NOT_FOUND).send({ message: error.message })
+    }
+
+    if (error instanceof mongoose.Error.ValidationError) {
+      return res.status(BAD_REQUEST).send({ message: error.message })
+    }
+
+    if (error instanceof mongoose.Error.CastError) {
+      return res.status(BAD_REQUEST).send({ message: error.message })
     }
 
     return res.status(INTERNAL_SERVER_ERROR).send({ message: "Ошибка на стороне сервера" });
@@ -101,32 +119,42 @@ export const updateUserAvatar = async (req: ITestRequest, res: Response) => {
   const id = req.user?._id;
   const { avatar } = req.body;
 
-  if(!avatar) {
-    const error = new Error("Переданы некорректные данные при обновлении аватара");
-    error.name = "Invalid_parameters";
-    throw error;
-  }
-
   try {
+    if(!avatar) {
+      const error = new Error("Переданы некорректные данные при обновлении аватара");
+      error.name = "Invalid_parameters";
+      throw error;
+    }
+
     const updateUser = await User.findByIdAndUpdate(
       id,
-      { avatar: req.body.avatar }
+      { avatar: req.body.avatar },{new: true}
     )
 
     if (!updateUser) {
       const error = new Error("Пользователь с указанным _id не найден");
-      error.name = "NotFound";
+      error.name = "Not Found";
       throw error;
     }
 
-    return res.status(201).send("Аватар обновлен")
+    return res.status(201).send({ message: "Аватар обновлен" })
   } catch (error) {
     if (error instanceof Error && error.name === "Invalid_parameters") {
       return res.status(BAD_REQUEST).send({ message: error.message })
-    } else if (error instanceof Error && error.name === "NotFound") {
-        return res.status(NOT_FOUND).send({ message: error.message })
-    } else {
-      return res.status(INTERNAL_SERVER_ERROR).send({ message: "Ошибка на стороне сервера" })
     }
+
+    if (error instanceof Error && error.name === "Not Found") {
+        return res.status(NOT_FOUND).send({ message: error.message })
+    }
+
+    if (error instanceof mongoose.Error.ValidationError) {
+      return res.status(BAD_REQUEST).send({ message: error.message })
+    }
+
+    if (error instanceof mongoose.Error.CastError) {
+      return res.status(BAD_REQUEST).send({ message: error.message })
+    }
+
+      return res.status(INTERNAL_SERVER_ERROR).send({ message: "Ошибка на стороне сервера" })
   }
 }
