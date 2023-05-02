@@ -1,22 +1,22 @@
-import { Request } from "express";
-const ObjectID = require("mongodb").ObjectID;
-type ObjectID = typeof import("mongodb").ObjectID;
+import { Request } from 'express';
+import { Schema, Types } from 'mongoose';
 
 export interface ICard {
   name: string,
   link: string,
-  owner: ObjectID,
+  owner: Schema.Types.ObjectId,
+  likes: [Types.ObjectId],
   createdAt: Date,
 }
 
 export interface IUser {
   name: string,
   about: string,
-  avatar: string | undefined,
+  avatar: string,
 }
 
 export interface ITestRequest extends Request {
   user?: {
-    _id: string,
-  }
+    _id: string
+  };
 }

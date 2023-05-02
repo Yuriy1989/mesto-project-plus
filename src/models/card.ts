@@ -1,7 +1,7 @@
-import mongoose from "mongoose";
-import { ICard } from "../types";
+import mongoose from 'mongoose';
+import { ICard } from '../types';
 
-//схемы карточки
+//  схемы карточки
 const cardSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -16,7 +16,6 @@ const cardSchema = new mongoose.Schema({
   owner: {
     type: mongoose.Schema.Types.ObjectId,
     required: true,
-    default: [],
   },
   likes: {
     type: [mongoose.Schema.Types.ObjectId],
