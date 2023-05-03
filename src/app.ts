@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import router from './routes';
 import { ITestRequest } from './types';
 import { TEST_ID } from './constants';
+import { createUser, login } from './controllers/users';
 
 const { PORT = 3000 } = process.env;
 const app = express();
@@ -20,6 +21,8 @@ app.use((req: Request, res: Response, next) => {
   next();
 });
 
+app.post('/singin', login);
+app.post('/sinhup', createUser);
 app.use('/', router);
 
 //  запуск сервера

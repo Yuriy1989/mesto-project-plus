@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import mongoose from 'mongoose';
+import bcrypt from 'bcrypt';
 import User from '../models/user';
 import { ITestRequest } from '../types';
 import {
@@ -8,6 +9,7 @@ import {
   INTERNAL_SERVER_ERROR,
   NOT_FOUND,
   OK,
+  SALT,
 } from '../constants';
 
 //  возвращает всех пользователей
@@ -47,16 +49,27 @@ export const getUserById = async (req: Request, res: Response) => {
 };
 
 //  создаёт пользователя
-export const addUser = async (req: Request, res: Response) => {
+export const createUser = async (req: Request, res: Response) => {
   try {
-    const { name, about, avatar } = req.body;
-    if (!name || !about || !avatar) {
+    const {
+      email,
+      password,
+    } = req.body;
+    if (!email || !password) {
       const error = new Error('Переданы некорректные данные при создании пользователя');
       error.name = 'Invalid parameters';
       throw error;
     }
 
-    const newUser = await User.create(req.body);
+    let data = req.body;
+    const hash = await bcrypt.hash(password, SALT);
+    data = {
+      ...data,
+      email,
+      password: hash,
+    };
+
+    const newUser = await User.create(data);
     return res.status(CREATED).send(newUser);
   } catch (error) {
     if (error instanceof Error && error.name === 'Invalid parameters') {
@@ -161,6 +174,29 @@ export const updateUserAvatar = async (req: ITestRequest, res: Response) => {
       return res.status(BAD_REQUEST).send({ message: error.message });
     }
 
+    return res.status(INTERNAL_SERVER_ERROR).send({ message: 'Ошибка на стороне сервера' });
+  }
+};
+
+// login
+export const login = async (req: Request, res: Response) => {
+  const { email, password } = req.body;
+  try {
+    if (!email || !password) {
+      const error = new Error('Переданы некорректные данные при обновлении аватара');
+      error.name = 'Invalid_parameters';
+      throw error;
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      const error = new Error('Неправильные почта или пароль');
+      error.name = 'Not Found';
+      throw error;
+    } else {
+      return res.status(200).send({ message: 'JWT' });
+    }
+  } catch {
     return res.status(INTERNAL_SERVER_ERROR).send({ message: 'Ошибка на стороне сервера' });
   }
 };

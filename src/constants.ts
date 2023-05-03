@@ -1,4 +1,5 @@
 export const TEST_ID = '644d54d992c4f9df2932be28';
+export const SALT = 10;
 
 export const OK = 200; // Запрос прошёл успешно.
 export const CREATED = 201; // Ресурс был создан на сервере.
