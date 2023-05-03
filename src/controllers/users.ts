@@ -143,7 +143,7 @@ export const updateUserAvatar = async (req: ITestRequest, res: Response) => {
       throw error;
     }
 
-    return res.status(201).send({ message: 'Аватар обновлен' });
+    return res.status(OK).send({ message: 'Аватар обновлен' });
   } catch (error) {
     if (error instanceof Error && error.name === 'Invalid_parameters') {
       return res.status(BAD_REQUEST).send({ message: error.message });
