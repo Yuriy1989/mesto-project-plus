@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import validator from 'validator';
 import { IUser } from '../types';
 
 //  схемы пользователя
@@ -16,6 +17,20 @@ const userSchema = new mongoose.Schema({
     maxlength: 200,
   },
   avatar: {
+    type: String,
+    required: true,
+  },
+  email: {
+    type: String,
+    required: true,
+    validate: {
+      validatorFun(v: string) {
+        return validator.isEmail(v);
+      },
+      message: 'Вам должно быть больше 18 лет!',
+    }
+  },
+  password: {
     type: String,
     required: true,
   },
