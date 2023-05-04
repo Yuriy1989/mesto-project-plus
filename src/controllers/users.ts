@@ -181,10 +181,11 @@ export const updateUserAvatar = async (req: ITestRequest, res: Response) => {
 // login
 export const login = async (req: Request, res: Response) => {
   const { email, password } = req.body;
+  console.log(email, password);
   try {
     if (!email || !password) {
-      const error = new Error('Переданы некорректные данные при обновлении аватара');
-      error.name = 'Invalid_parameters';
+      const error = new Error('Переданы некорректные данные');
+      error.name = 'Invalid parameters';
       throw error;
     }
 
@@ -193,10 +194,33 @@ export const login = async (req: Request, res: Response) => {
       const error = new Error('Неправильные почта или пароль');
       error.name = 'Not Found';
       throw error;
-    } else {
-      return res.status(200).send({ message: 'JWT' });
     }
-  } catch {
+    const hash = await bcrypt.hash(password, SALT);
+
+    if (hash !== user.password) {
+      const error = new Error('Неправильные почта или пароль!!!');
+      error.name = 'Not Found';
+      throw error;
+    }
+
+    return res.status(OK).send({ _id: user._id });
+  } catch (error) {
+    if (error instanceof Error && error.name === 'Invalid parameters') {
+      return res.status(NOT_FOUND).send({ message: error.message });
+    }
+
+    if (error instanceof Error && error.name === 'Not Found') {
+      return res.status(NOT_FOUND).send({ message: error.message });
+    }
+
+    if (error instanceof mongoose.Error.ValidationError) {
+      return res.status(BAD_REQUEST).send({ message: error.message });
+    }
+
+    if (error instanceof mongoose.Error.CastError) {
+      return res.status(BAD_REQUEST).send({ message: error.message });
+    }
+
     return res.status(INTERNAL_SERVER_ERROR).send({ message: 'Ошибка на стороне сервера' });
   }
 };

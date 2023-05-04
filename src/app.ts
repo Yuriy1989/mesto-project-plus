@@ -22,7 +22,7 @@ app.use((req: Request, res: Response, next) => {
 });
 
 app.post('/singin', login);
-app.post('/sinhup', createUser);
+app.post('/singup', createUser);
 app.use('/', router);
 
 //  запуск сервера

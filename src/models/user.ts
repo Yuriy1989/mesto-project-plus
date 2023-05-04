@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import validator from 'validator';
+// import bcrypt from 'bcrypt';
 import { IUser } from '../types';
 
 //  схемы пользователя
@@ -34,5 +35,17 @@ const userSchema = new mongoose.Schema({
     required: true,
   },
 });
+
+// userSchema.static('findUserByCredentials', async function findUserByCredentials(email: string, password: string) {
+//   const user = await User.findOne({ email });
+//   if (!user) {
+
+//   }
+//   try {
+
+//   } catch {
+//     return res.status(INTERNAL_SERVER_ERROR).send({ message: 'Ошибка на стороне сервера' });
+//   }
+// });
 
 export default mongoose.model<IUser>('user', userSchema);
