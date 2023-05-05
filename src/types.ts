@@ -1,5 +1,6 @@
 import { Request } from 'express';
-import { Schema, Types } from 'mongoose';
+import { Schema, Types, Model, Document } from 'mongoose';
+import { JwtPayload } from 'jsonwebtoken';
 
 export interface ICard {
   name: string,
@@ -15,6 +16,14 @@ export interface IUser {
   avatar: string,
   email: string,
   password: string,
+}
+
+export interface IUserModel extends Model<IUser> {
+  findUserByCredentials: (email: string, password: string) => Promise<Document<any, any, IUser>>;
+}
+
+export interface SessionRequest extends Request {
+  user?: string | JwtPayload;
 }
 
 export interface ITestRequest extends Request {

@@ -4,6 +4,7 @@ import router from './routes';
 import { ITestRequest } from './types';
 import { TEST_ID } from './constants';
 import { createUser, login } from './controllers/users';
+import auth from './middlewares/auth';
 
 const { PORT = 3000 } = process.env;
 const app = express();
@@ -23,6 +24,8 @@ app.use((req: Request, res: Response, next) => {
 
 app.post('/singin', login);
 app.post('/singup', createUser);
+
+app.use(auth);
 app.use('/', router);
 
 //  запуск сервера

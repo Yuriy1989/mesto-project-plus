@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 import User from '../models/user';
 import { ITestRequest } from '../types';
 import {
@@ -10,6 +11,7 @@ import {
   NOT_FOUND,
   OK,
   SALT,
+  UNAUTHORIZED,
 } from '../constants';
 
 //  возвращает всех пользователей
@@ -178,49 +180,15 @@ export const updateUserAvatar = async (req: ITestRequest, res: Response) => {
   }
 };
 
-// login
-export const login = async (req: Request, res: Response) => {
+export const login = (req: Request, res: Response) => {
   const { email, password } = req.body;
-  console.log(email, password);
-  try {
-    if (!email || !password) {
-      const error = new Error('Переданы некорректные данные');
-      error.name = 'Invalid parameters';
-      throw error;
-    }
 
-    const user = await User.findOne({ email });
-    if (!user) {
-      const error = new Error('Неправильные почта или пароль');
-      error.name = 'Not Found';
-      throw error;
-    }
-    const hash = await bcrypt.hash(password, SALT);
-
-    if (hash !== user.password) {
-      const error = new Error('Неправильные почта или пароль!!!');
-      error.name = 'Not Found';
-      throw error;
-    }
-
-    return res.status(OK).send({ _id: user._id });
-  } catch (error) {
-    if (error instanceof Error && error.name === 'Invalid parameters') {
-      return res.status(NOT_FOUND).send({ message: error.message });
-    }
-
-    if (error instanceof Error && error.name === 'Not Found') {
-      return res.status(NOT_FOUND).send({ message: error.message });
-    }
-
-    if (error instanceof mongoose.Error.ValidationError) {
-      return res.status(BAD_REQUEST).send({ message: error.message });
-    }
-
-    if (error instanceof mongoose.Error.CastError) {
-      return res.status(BAD_REQUEST).send({ message: error.message });
-    }
-
-    return res.status(INTERNAL_SERVER_ERROR).send({ message: 'Ошибка на стороне сервера' });
-  }
+  return User.findUserByCredentials(email, password)
+    .then((user) => {
+      const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '20m' });
+      res.status(OK).send({ _id: user.id, token });
+    })
+    .catch((error) => {
+      res.status(UNAUTHORIZED).send({ message: error.message });
+    });
 };

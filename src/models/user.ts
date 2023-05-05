@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import validator from 'validator';
-// import bcrypt from 'bcrypt';
-import { IUser } from '../types';
+import bcrypt from 'bcrypt';
+import { IUser, IUserModel } from '../types';
 
 //  схемы пользователя
 const userSchema = new mongoose.Schema({
@@ -36,16 +36,21 @@ const userSchema = new mongoose.Schema({
   },
 });
 
-// userSchema.static('findUserByCredentials', async function findUserByCredentials(email: string, password: string) {
-//   const user = await User.findOne({ email });
-//   if (!user) {
+userSchema.static('findUserByCredentials', function findUserByCredentials(email: string, password: string) {
+  return this.findOne({ email })
+    .then((user: { password: string; }) => {
+      if (!user) {
+        return Promise.reject(new Error('Неправильные почта или пароль'));
+      }
 
-//   }
-//   try {
+      return bcrypt.compare(password, user.password)
+        .then((matched) => {
+          if (!matched) {
+            return Promise.reject(new Error('Неправильные почта или пароль!'));
+          }
+          return user;
+        });
+    });
+});
 
-//   } catch {
-//     return res.status(INTERNAL_SERVER_ERROR).send({ message: 'Ошибка на стороне сервера' });
-//   }
-// });
-
-export default mongoose.model<IUser>('user', userSchema);
+export default mongoose.model<IUser, IUserModel>('user', userSchema);
