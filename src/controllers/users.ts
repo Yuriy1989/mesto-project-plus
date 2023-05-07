@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import mongoose from 'mongoose';
+// import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import User from '../models/user';
@@ -7,11 +7,11 @@ import { IErrorStatus, ITestRequest } from '../types';
 import {
   BAD_REQUEST,
   CREATED,
-  INTERNAL_SERVER_ERROR,
+  // INTERNAL_SERVER_ERROR,
   NOT_FOUND,
   OK,
   SALT,
-  UNAUTHORIZED,
+  // UNAUTHORIZED,
 } from '../constants';
 
 //  возвращает всех пользователей
