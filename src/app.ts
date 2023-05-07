@@ -1,3 +1,4 @@
+import './env';
 import express, {
   json,
   Request,
@@ -9,6 +10,7 @@ import router from './routes';
 import { createUser, login } from './controllers/users';
 import { INTERNAL_SERVER_ERROR } from './constants';
 import { requestLogger, errorLogger } from './middlewares/logger';
+import auth from './middlewares/auth';
 
 const { PORT = 3000 } = process.env;
 const app = express();
@@ -36,7 +38,7 @@ app.post('/singup', celebrate({
   }),
 }), createUser);
 
-// app.use(auth);
+app.use(auth);
 app.use('/', router);
 
 app.use(errorLogger);// подключаем логер ошибок

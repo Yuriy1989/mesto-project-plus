@@ -1,17 +1,15 @@
 import { NextFunction, Request, Response } from 'express';
-// import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import User from '../models/user';
 import { IErrorStatus, ITestRequest } from '../types';
 import {
   BAD_REQUEST,
+  CONFLICK,
   CREATED,
-  // INTERNAL_SERVER_ERROR,
   NOT_FOUND,
   OK,
   SALT,
-  // UNAUTHORIZED,
 } from '../constants';
 
 //  возвращает всех пользователей
@@ -51,6 +49,13 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
     if (!email || !password) {
       const error: IErrorStatus = new Error('Переданы некорректные данные при создании пользователя');
       error.statusCode = BAD_REQUEST;
+      throw error;
+    }
+
+    const searchUser = await User.findOne({ email });
+    if (searchUser) {
+      const error: IErrorStatus = new Error('Пользователь с таким email уже зарегистрирован');
+      error.statusCode = CONFLICK;
       throw error;
     }
 
@@ -137,7 +142,7 @@ export const login = (req: Request, res: Response, next: NextFunction) => {
 
   return User.findUserByCredentials(email, password)
     .then((user) => {
-      const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '20m' });
+      const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET as string, { expiresIn: '7d' });
       res.status(OK).send({ _id: user.id, token });
     })
     .catch((error) => {
@@ -149,7 +154,6 @@ export const login = (req: Request, res: Response, next: NextFunction) => {
 export const getUser = (req: ITestRequest, res: Response, next: NextFunction) => {
   const id = req.user!._id;
 
-  console.log(req.body);
   return User.findById(id)
     .then((user) => {
       if (!user) {

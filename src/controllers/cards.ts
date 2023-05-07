@@ -1,31 +1,29 @@
-import { Request, Response } from 'express';
-import mongoose from 'mongoose';
+import { NextFunction, Request, Response } from 'express';
 import Card from '../models/card';
-import { ITestRequest } from '../types';
+import { IErrorStatus, ITestRequest } from '../types';
 import {
   OK,
   BAD_REQUEST,
-  INTERNAL_SERVER_ERROR,
   NOT_FOUND,
 } from '../constants';
 
 //  возвращает все карточки
-export const getCards = async (req: Request, res: Response) => {
+export const getCards = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const cards = await (Card.find({}));
     res.status(OK).send(cards);
-  } catch {
-    res.status(INTERNAL_SERVER_ERROR).send({ message: 'Ошибка на стороне сервера' });
+  } catch (error) {
+    next(error);
   }
 };
 
 //  создаёт карточку
-export const createCard = async (req: ITestRequest, res: Response) => {
+export const createCard = async (req: ITestRequest, res: Response, next: NextFunction) => {
   try {
     let data = req.body; // данные для занесения  коллекцию
     if (!data.name || !data.link) {
-      const error = new Error('Переданы некорректные данные при создании карточки');
-      error.name = 'Invalid parameters';
+      const error: IErrorStatus = new Error('Переданы некорректные данные при создании карточки');
+      error.statusCode = BAD_REQUEST;
       throw error;
     }
 
@@ -35,48 +33,32 @@ export const createCard = async (req: ITestRequest, res: Response) => {
     };
 
     const newCard = await Card.create(data);
-    return res.status(200).send(newCard);
+    res.status(OK).send(newCard);
   } catch (error) {
-    if (error instanceof Error && error.name === 'Invalid parameters') {
-      return res.status(BAD_REQUEST).send({ message: error.message });
-    }
-
-    if (error instanceof mongoose.Error.ValidationError) {
-      return res.status(BAD_REQUEST).send({ message: error.message });
-    }
-
-    return res.status(INTERNAL_SERVER_ERROR).send({ message: 'Ошибка на стороне сервера' });
+    next(error);
   }
 };
 
 //  удаляет карточку по идентификатору
-export const deleteCardById = async (req: Request, res: Response) => {
+export const deleteCardById = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { cardId } = req.params;
     const deleteCard = await Card.findByIdAndRemove(cardId);
 
     if (!deleteCard) {
-      const error = new Error('Карточка с указанным _id не найдена');
-      error.name = 'Not found';
+      const error: IErrorStatus = new Error('Карточка с указанным _id не найдена');
+      error.statusCode = NOT_FOUND;
       throw error;
     }
 
-    return res.status(200).send({ message: `Карточка с id = ${cardId} удалена` });
+    res.status(200).send({ message: `Карточка с id = ${cardId} удалена` });
   } catch (error) {
-    if (error instanceof Error && error.name === 'Not found') {
-      return res.status(NOT_FOUND).send({ message: error.message });
-    }
-
-    if (error instanceof mongoose.Error.CastError) {
-      return res.status(BAD_REQUEST).send({ message: error.message });
-    }
-
-    return res.status(INTERNAL_SERVER_ERROR).send({ message: 'Ошибка на стороне сервера' });
+    next(error);
   }
 };
 
 //  поставить лайк карточке
-export const likeCard = async (req: ITestRequest, res: Response) => {
+export const likeCard = async (req: ITestRequest, res: Response, next: NextFunction) => {
   try {
     const { cardId } = req.params;
     const likeCards = await Card.findByIdAndUpdate(
@@ -86,26 +68,18 @@ export const likeCard = async (req: ITestRequest, res: Response) => {
     );
 
     if (!likeCards) {
-      const error = new Error('Карточка с указанным _id не найдена');
-      error.name = 'Not found';
+      const error: IErrorStatus = new Error('Карточка с указанным _id не найдена');
+      error.statusCode = NOT_FOUND;
       throw error;
     }
-    return res.status(OK).send({ message: 'like' });
+    res.status(OK).send({ message: 'like' });
   } catch (error) {
-    if (error instanceof Error && error.name === 'Not found') {
-      return res.status(NOT_FOUND).send({ message: error.message });
-    }
-
-    if (error instanceof mongoose.Error.CastError) {
-      return res.status(BAD_REQUEST).send({ message: error.message });
-    }
-
-    return res.status(INTERNAL_SERVER_ERROR).send({ message: 'Ошибка на стороне сервера' });
+    next(error);
   }
 };
 
 //  убрать лайк с карточки
-export const dislikeCard = async (req: ITestRequest, res: Response) => {
+export const dislikeCard = async (req: ITestRequest, res: Response, next: NextFunction) => {
   const id = req.user?._id;
 
   try {
@@ -116,21 +90,13 @@ export const dislikeCard = async (req: ITestRequest, res: Response) => {
     );
 
     if (!dislikeCards) {
-      const error = new Error('Карточка с указанным _id не найдена');
-      error.name = 'Not found';
+      const error: IErrorStatus = new Error('Карточка с указанным _id не найдена');
+      error.statusCode = NOT_FOUND;
       throw error;
     }
 
-    return res.status(OK).send({ message: 'delete like' });
+    res.status(OK).send({ message: 'delete like' });
   } catch (error) {
-    if (error instanceof Error && error.name === 'Not found') {
-      return res.status(NOT_FOUND).send({ message: error.message });
-    }
-
-    if (error instanceof mongoose.Error.CastError) {
-      return res.status(BAD_REQUEST).send({ message: error.message });
-    }
-
-    return res.status(INTERNAL_SERVER_ERROR).send({ message: 'Ошибка на стороне сервера' });
+    next(error);
   }
 };
