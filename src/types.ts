@@ -1,5 +1,11 @@
 import { Request } from 'express';
-import { Schema, Types } from 'mongoose';
+import {
+  Schema,
+  Types,
+  Model,
+  Document,
+} from 'mongoose';
+import { JwtPayload } from 'jsonwebtoken';
 
 export interface ICard {
   name: string,
@@ -13,10 +19,25 @@ export interface IUser {
   name: string,
   about: string,
   avatar: string,
+  email: string,
+  password: string,
+}
+
+export interface IUserModel extends Model<IUser> {
+  // eslint-disable-next-line no-unused-vars
+  findUserByCredentials: (email: string, password: string) => Promise<Document<any, any, IUser>>;
+}
+
+export interface SessionRequest extends Request {
+  user?: string | JwtPayload;
 }
 
 export interface ITestRequest extends Request {
   user?: {
     _id: string
   };
+}
+
+export interface IErrorStatus extends Error {
+  statusCode?: number | undefined
 }
