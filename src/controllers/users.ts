@@ -1,41 +1,42 @@
 import { NextFunction, Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import mongoose from 'mongoose';
 import User from '../models/user';
-import { IErrorStatus, ITestRequest } from '../types';
+import { ITestRequest } from '../types';
 import {
-  BAD_REQUEST,
-  CONFLICK,
   CREATED,
-  NOT_FOUND,
   OK,
   SALT,
 } from '../constants';
+import NotFoundError from '../utils/not-found-err';
 
 //  возвращает всех пользователей
 export const getUsers = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const users = await (User.find({}));
-    res.status(OK).send(users);
+    return res.status(OK).send(users);
   } catch (error) {
-    next(error);
+    return next(NotFoundError.internalServerError('На сервере произошла ошибка'));
   }
 };
 
+//  получаем информацию по _id пользователя
 export const getUserById = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const user = await (User.findById(id));
 
     if (!user) {
-      const error: IErrorStatus = new Error('Пользователь по указанному _id не найден');
-      error.statusCode = NOT_FOUND;
-      throw error;
+      return next(NotFoundError.notFound('Пользователь по указанному _id не найден'));
     }
 
-    res.status(OK).send(user);
+    return res.status(OK).send(user);
   } catch (error) {
-    next(error);
+    if (error instanceof mongoose.Error.CastError) {
+      return next(NotFoundError.badRequest('Переданы некорректные данные для удаления карточки'));
+    }
+    return next(NotFoundError.internalServerError('На сервере произошла ошибка'));
   }
 };
 
@@ -46,31 +47,20 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
       email,
       password,
     } = req.body;
-    if (!email || !password) {
-      const error: IErrorStatus = new Error('Переданы некорректные данные при создании пользователя');
-      error.statusCode = BAD_REQUEST;
-      throw error;
-    }
 
-    const searchUser = await User.findOne({ email });
-    if (searchUser) {
-      const error: IErrorStatus = new Error('Пользователь с таким email уже зарегистрирован');
-      error.statusCode = CONFLICK;
-      throw error;
-    }
-
-    let data = req.body;
     const hash = await bcrypt.hash(password, SALT);
-    data = {
-      ...data,
+    const data = {
       email,
       password: hash,
     };
 
     const newUser = await User.create(data);
-    res.status(CREATED).send(newUser);
+    return res.status(CREATED).send(newUser);
   } catch (error) {
-    next(error);
+    if (error instanceof mongoose.Error.ValidationError) {
+      return next(NotFoundError.badRequest('Переданы некорректные данные при создании пользователя'));
+    }
+    return next(NotFoundError.internalServerError('На сервере произошла ошибка'));
   }
 };
 
@@ -79,45 +69,33 @@ export const updateUserProfile = async (req: ITestRequest, res: Response, next: 
   const id = req.user?._id;
   const { name, about } = req.body;
   try {
-    if (!name || !about) {
-      const error: IErrorStatus = new Error('Переданы некорректные данные при обновлении профиля');
-      error.statusCode = BAD_REQUEST;
-      throw error;
-    }
-
     const updateUser = await User.findByIdAndUpdate(
       id,
       {
-        name: req.body.name,
-        about: req.body.about,
+        name,
+        about,
       },
       { new: true, runValidators: true },
     );
 
     if (!updateUser) {
-      const error: IErrorStatus = new Error('Пользователь с указанным _id не найден');
-      error.statusCode = NOT_FOUND;
-      throw error;
+      return next(NotFoundError.notFound('Пользователь с указанным _id не найден'));
     }
 
-    res.status(OK).send(updateUser);
+    return res.status(OK).send(updateUser);
   } catch (error) {
-    next(error);
+    if (error instanceof mongoose.Error.ValidationError) {
+      return next(NotFoundError.badRequest('Переданы некорректные данные при обновлении профиля'));
+    }
+    return next(NotFoundError.internalServerError('На сервере произошла ошибка'));
   }
 };
 
 //  обновляет аватар
 export const updateUserAvatar = async (req: ITestRequest, res: Response, next: NextFunction) => {
   const id = req.user?._id;
-  const { avatar } = req.body;
 
   try {
-    if (!avatar) {
-      const error: IErrorStatus = new Error('Переданы некорректные данные при обновлении аватара');
-      error.statusCode = BAD_REQUEST;
-      throw error;
-    }
-
     const updateUser = await User.findByIdAndUpdate(
       id,
       { avatar: req.body.avatar },
@@ -125,43 +103,42 @@ export const updateUserAvatar = async (req: ITestRequest, res: Response, next: N
     );
 
     if (!updateUser) {
-      const error: IErrorStatus = new Error('Пользователь с указанным _id не найден');
-      error.statusCode = NOT_FOUND;
-      throw error;
+      return next(NotFoundError.notFound('Пользователь с указанным _id не найден'));
     }
 
-    res.status(OK).send({ message: 'Аватар обновлен' });
+    return res.status(OK).send({ message: 'Аватар обновлен' });
   } catch (error) {
-    next(error);
+    if (error instanceof mongoose.Error.ValidationError) {
+      return next(NotFoundError.badRequest('Переданы некорректные данные при обновлении аватара'));
+    }
+    return next(NotFoundError.internalServerError('На сервере произошла ошибка'));
   }
 };
 
 //  авторизация
-export const login = (req: Request, res: Response, next: NextFunction) => {
+export const login = async (req: Request, res: Response, next: NextFunction) => {
   const { email, password } = req.body;
 
-  return User.findUserByCredentials(email, password)
-    .then((user) => {
-      const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET as string, { expiresIn: '7d' });
-      res.status(OK).send({ _id: user.id, token });
-    })
-    .catch((error) => {
-      next(error);
-    });
+  try {
+    const user = await User.findUserByCredentials(email, password);
+    const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET as string, { expiresIn: '7d' });
+    return res.status(OK).send({ _id: user._id, token });
+  } catch (error) {
+    return next(NotFoundError.internalServerError('На сервере произошла ошибка'));
+  }
 };
 
 // возвращает информацию о текущем пользователе
-export const getUser = (req: ITestRequest, res: Response, next: NextFunction) => {
-  const id = req.user!._id;
+export const getUser = async (req: ITestRequest, res: Response, next: NextFunction) => {
+  const id = req.user?._id;
 
-  return User.findById(id)
-    .then((user) => {
-      if (!user) {
-        return Promise.reject(new Error('Пользователь по указанному _id не найден'));
-      }
-      return res.status(OK).send({ user });
-    })
-    .catch((error) => {
-      next(error);
-    });
+  try {
+    const user = await User.findById(id);
+    if (!user) {
+      return next(NotFoundError.notFound('Пользователь с указанным _id не найден'));
+    }
+    return res.status(OK).send({ user });
+  } catch {
+    return next(NotFoundError.internalServerError('На сервере произошла ошибка'));
+  }
 };

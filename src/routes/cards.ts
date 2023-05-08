@@ -7,14 +7,15 @@ import {
   getCards,
   likeCard,
 } from '../controllers/cards';
+import { regexLink } from '../constants';
 
 const cardsRouter = Router();
 
 cardsRouter.get('/cards', getCards);
 cardsRouter.post('/cards', celebrate({
   body: Joi.object().keys({
-    name: Joi.string().required().length(24).hex(),
-    link: Joi.string().required(),
+    name: Joi.string().required().min(2).max(30),
+    link: Joi.string().required().pattern(regexLink),
   }),
 }), createCard);
 cardsRouter.delete('/cards/:cardId', celebrate({

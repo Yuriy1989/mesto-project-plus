@@ -1,4 +1,3 @@
-export const TEST_ID = '644d54d992c4f9df2932be28';
 export const SALT = 10;
 
 export const OK = 200; // Запрос прошёл успешно.
@@ -7,8 +6,9 @@ export const ACCEPTED = 202; // Сервер начал работу по удо
 export const BAD_REQUEST = 400; //  Ошибка на стороне клиента.
 export const UNAUTHORIZED = 401; // Запрос требует авторизации.
 export const NOT_FOUND = 404; //  Ресурс не найден.
-export const CONFLICK = 409; // Данный email уже используется.
+export const CONFLICT = 409; // Данный email уже используется.
 export const INTERNAL_SERVER_ERROR = 500; //  Общий статус для ошибок на стороне сервера.
 export const IM_A_KETTLE = 418; //  418 — «я чайник!»
 
+// eslint-disable-next-line no-useless-escape
 export const regexLink = /^https?:\/\/[a-z,0-9,\-\._~:\/?#\[\]@!$&'\(\)*\+,;=]+\.[a-z,0-9,\-\._~:\/?#\[\]@!$&'\(\)*\+,;=]+#?/i;

@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import { ICard } from '../types';
+import { regexLink } from '../constants';
 
 //  схемы карточки
 const cardSchema = new mongoose.Schema({
@@ -12,9 +13,14 @@ const cardSchema = new mongoose.Schema({
   link: {
     type: String,
     required: true,
+    validate: {
+      validator: (v: string) => regexLink.test(v),
+      message: 'Некорректная ссылка',
+    },
   },
   owner: {
     type: mongoose.Schema.Types.ObjectId,
+    ref: 'user',
     required: true,
   },
   likes: {

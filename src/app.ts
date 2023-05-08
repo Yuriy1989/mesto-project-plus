@@ -8,9 +8,10 @@ import mongoose from 'mongoose';
 import { errors, celebrate, Joi } from 'celebrate';
 import router from './routes';
 import { createUser, login } from './controllers/users';
-import { INTERNAL_SERVER_ERROR } from './constants';
+import { INTERNAL_SERVER_ERROR, regexLink } from './constants';
 import { requestLogger, errorLogger } from './middlewares/logger';
 import auth from './middlewares/auth';
+import { IErrorStatus } from './types';
 
 const { PORT = 3000 } = process.env;
 const app = express();
@@ -32,7 +33,7 @@ app.post('/singup', celebrate({
   body: Joi.object().keys({
     name: Joi.string().min(2).max(30),
     about: Joi.string().min(2).max(30),
-    avatar: Joi.string(),
+    avatar: Joi.string().pattern(regexLink),
     email: Joi.string().required().email(),
     password: Joi.string().required().min(8),
   }),
@@ -44,7 +45,7 @@ app.use('/', router);
 app.use(errorLogger);// подключаем логер ошибок
 app.use(errors());// обработчик ошибок celebrate
 // централизованный обработчик ошибок
-app.use((error: any, _req: Request, res: Response) => {
+app.use((error: IErrorStatus, _req: Request, res: Response) => {
   const { statusCode = INTERNAL_SERVER_ERROR, message } = error;
   return res
     .status(statusCode)
