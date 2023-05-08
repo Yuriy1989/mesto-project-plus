@@ -3,6 +3,7 @@ import validator from 'validator';
 import bcrypt from 'bcrypt';
 import { IUser, IUserModel } from '../types';
 import { regexLink } from '../constants';
+import NotFoundError from '../utils/not-found-err';
 
 //  схемы пользователя
 const userSchema = new mongoose.Schema({
@@ -29,11 +30,11 @@ const userSchema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
-    unique: true,
     validate: {
       validator: (v: string) => validator.isEmail(v),
       message: 'Неправильный формат почты',
     },
+    unique: true,
   },
   password: {
     type: String,
@@ -46,13 +47,13 @@ userSchema.static('findUserByCredentials', function findUserByCredentials(email:
   return this.findOne({ email }).select('+password')
     .then((user: { password: string; }) => {
       if (!user) {
-        return Promise.reject(new Error('Неправильные почта или пароль'));
+        return NotFoundError.unauthorized('Неправильные почта или пароль');
       }
 
       return bcrypt.compare(password, user.password)
         .then((matched) => {
           if (!matched) {
-            return Promise.reject(new Error('Неправильные почта или пароль!'));
+            return NotFoundError.unauthorized('Неправильные почта или пароль');
           }
           return user;
         });
