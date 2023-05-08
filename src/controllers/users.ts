@@ -57,6 +57,9 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
     const newUser = await User.create(data);
     return res.status(CREATED).send(newUser);
   } catch (error) {
+    if (error instanceof Error && error.message.startsWith('E11000')) {
+      return next(NotFoundError.badRequest('Пользователь с таким email уже есть'));
+    }
     if (error instanceof mongoose.Error.ValidationError) {
       return next(NotFoundError.badRequest('Переданы некорректные данные при создании пользователя'));
     }
