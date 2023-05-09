@@ -5,7 +5,9 @@ import { ITestRequest } from '../types';
 import {
   OK,
 } from '../constants';
-import NotFoundError from '../utils/not-found-err';
+import BadRequest from '../utils/badRequestError';
+import InternalServer from '../utils/internalServerError';
+import NotFound from '../utils/notFoundError';
 
 //  возвращает все карточки
 export const getCards = async (req: Request, res: Response, next: NextFunction) => {
@@ -13,7 +15,7 @@ export const getCards = async (req: Request, res: Response, next: NextFunction) 
     const cards = await (Card.find({}));
     return res.status(OK).send(cards);
   } catch (error) {
-    return next(NotFoundError.internalServerError('На сервере произошла ошибка'));
+    return next(new InternalServer('На сервере произошла ошибка'));
   }
 };
 
@@ -32,9 +34,9 @@ export const createCard = async (req: ITestRequest, res: Response, next: NextFun
     return res.status(OK).send(newCard);
   } catch (error) {
     if (error instanceof mongoose.Error.ValidationError) {
-      return next(NotFoundError.badRequest('Переданы некорректные данные при создании карточки'));
+      return next(new BadRequest('Переданы некорректные данные при создании карточки'));
     }
-    return next(NotFoundError.internalServerError('На сервере произошла ошибка'));
+    return next(new InternalServer('На сервере произошла ошибка'));
   }
 };
 
@@ -43,23 +45,23 @@ export const deleteCardById = async (req: ITestRequest, res: Response, next: Nex
   try {
     const { cardId } = req.params;
     const owner = req.user?._id;
-    const user = await Card.findById(cardId);
+    const card = await Card.findById(cardId);
 
-    if (!user) {
-      return next(NotFoundError.notFound('Карточка с указанным _id не найдена'));
+    if (!card) {
+      return next(new NotFound('Карточка с указанным _id не найдена'));
     }
 
-    if (owner !== user?.owner.toString()) {
-      return next(NotFoundError.badRequest('Недостаточно прав'));
+    if (owner !== card?.owner.toString()) {
+      return next(new BadRequest('Недостаточно прав'));
     }
 
     await Card.findByIdAndRemove(cardId);
     return res.status(OK).send({ message: `Карточка с id = ${cardId} удалена` });
   } catch (error) {
     if (error instanceof mongoose.Error.CastError) {
-      return next(NotFoundError.badRequest('Переданы некорректные данные для удаления карточки'));
+      return next(new BadRequest('Переданы некорректные данные для удаления карточки'));
     }
-    return next(NotFoundError.internalServerError('На сервере произошла ошибка'));
+    return next(new InternalServer('На сервере произошла ошибка'));
   }
 };
 
@@ -74,15 +76,15 @@ export const likeCard = async (req: ITestRequest, res: Response, next: NextFunct
     );
 
     if (!likeCards) {
-      return next(NotFoundError.notFound('Карточка с указанным _id не найдена'));
+      return next(new NotFound('Карточка с указанным _id не найдена'));
     }
 
     return res.status(OK).send({ message: 'like' });
   } catch (error) {
     if (error instanceof mongoose.Error.CastError) {
-      return next(NotFoundError.badRequest('Переданы некорректные данные для удаления карточки'));
+      return next(new BadRequest('Переданы некорректные данные для удаления карточки'));
     }
-    return next(NotFoundError.internalServerError('На сервере произошла ошибка'));
+    return next(new InternalServer('На сервере произошла ошибка'));
   }
 };
 
@@ -98,14 +100,14 @@ export const dislikeCard = async (req: ITestRequest, res: Response, next: NextFu
     );
 
     if (!dislikeCards) {
-      return next(NotFoundError.notFound('Карточка с указанным _id не найдена'));
+      return next(new NotFound('Карточка с указанным _id не найдена'));
     }
 
     return res.status(OK).send({ message: 'delete like' });
   } catch (error) {
     if (error instanceof mongoose.Error.CastError) {
-      return next(NotFoundError.badRequest('Переданы некорректные данные для удаления карточки'));
+      return next(new BadRequest('Переданы некорректные данные для удаления карточки'));
     }
-    return next(NotFoundError.internalServerError('На сервере произошла ошибка'));
+    return next(new InternalServer('На сервере произошла ошибка'));
   }
 };

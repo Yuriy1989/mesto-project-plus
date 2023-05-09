@@ -5,41 +5,22 @@ import express, {
   Response,
 } from 'express';
 import mongoose from 'mongoose';
-import { errors, celebrate, Joi } from 'celebrate';
+import { errors } from 'celebrate';
 import router from './routes';
-import { createUser, login } from './controllers/users';
-import { INTERNAL_SERVER_ERROR, regexLink } from './constants';
+import { INTERNAL_SERVER_ERROR, nameServer } from './constants';
 import { requestLogger, errorLogger } from './middlewares/logger';
-import auth from './middlewares/auth';
 import { IErrorStatus } from './types';
 
 const { PORT = 3000 } = process.env;
 const app = express();
 
 //  подключитесь к серверу MongoDB
-mongoose.connect('mongodb://127.0.0.1:27017/mestodb');
+mongoose.connect(nameServer);
 
 app.use(json());
 
 app.use(requestLogger);
 
-app.post('/singin', celebrate({
-  body: Joi.object().keys({
-    email: Joi.string().required().email(),
-    password: Joi.string().required().min(8),
-  }),
-}), login);
-app.post('/singup', celebrate({
-  body: Joi.object().keys({
-    name: Joi.string().min(2).max(30),
-    about: Joi.string().min(2).max(30),
-    avatar: Joi.string().pattern(regexLink),
-    email: Joi.string().required().email(),
-    password: Joi.string().required().min(8),
-  }),
-}), createUser);
-
-app.use(auth);
 app.use('/', router);
 
 app.use(errorLogger);// подключаем логер ошибок

@@ -39,5 +39,6 @@ export interface ITestRequest extends Request {
 }
 
 export interface IErrorStatus extends Error {
-  statusCode?: number | undefined
+  statusCode?: number | undefined,
+  code?: string | undefined
 }

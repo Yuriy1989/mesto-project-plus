@@ -12,3 +12,5 @@ export const IM_A_KETTLE = 418; //  418 — «я чайник!»
 
 // eslint-disable-next-line no-useless-escape
 export const regexLink = /^https?:\/\/[a-z,0-9,\-\._~:\/?#\[\]@!$&'\(\)*\+,;=]+\.[a-z,0-9,\-\._~:\/?#\[\]@!$&'\(\)*\+,;=]+#?/i;
+
+export const nameServer = 'mongodb://127.0.0.1:27017/mestodb';

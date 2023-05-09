@@ -11,20 +11,20 @@ import { regexLink } from '../constants';
 
 const usersRouter = Router();
 
-usersRouter.get('/users', getUsers);
-usersRouter.patch('/users/me', celebrate({
+usersRouter.get('/', getUsers);
+usersRouter.patch('/me', celebrate({
   body: Joi.object().keys({
     name: Joi.string().required().min(2).max(30),
     about: Joi.string().required().min(2).max(200),
   }),
 }), updateUserProfile);
-usersRouter.get('/users/me', getUser);
-usersRouter.patch('/users/me/avatar', celebrate({
+usersRouter.get('/me', getUser);
+usersRouter.patch('/me/avatar', celebrate({
   body: Joi.object().keys({
     avatar: Joi.string().required().pattern(regexLink),
   }),
 }), updateUserAvatar);
-usersRouter.get('/users/:id', celebrate({
+usersRouter.get('/:id', celebrate({
   params: Joi.object().keys({
     id: Joi.string().required().length(24).hex(),
   }),

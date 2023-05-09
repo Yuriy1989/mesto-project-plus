@@ -11,24 +11,24 @@ import { regexLink } from '../constants';
 
 const cardsRouter = Router();
 
-cardsRouter.get('/cards', getCards);
-cardsRouter.post('/cards', celebrate({
+cardsRouter.get('/', getCards);
+cardsRouter.post('/', celebrate({
   body: Joi.object().keys({
     name: Joi.string().required().min(2).max(30),
     link: Joi.string().required().pattern(regexLink),
   }),
 }), createCard);
-cardsRouter.delete('/cards/:cardId', celebrate({
+cardsRouter.delete('/:cardId', celebrate({
   params: Joi.object().keys({
     cardId: Joi.string().required().length(24).hex(),
   }),
 }), deleteCardById);
-cardsRouter.put('/cards/:cardId/likes', celebrate({
+cardsRouter.put('/:cardId/likes', celebrate({
   params: Joi.object().keys({
     cardId: Joi.string().required().length(24).hex(),
   }),
 }), likeCard);
-cardsRouter.delete('/cards/:cardId/likes', celebrate({
+cardsRouter.delete('/:cardId/likes', celebrate({
   params: Joi.object().keys({
     cardId: Joi.string().required().length(24).hex(),
   }),
