@@ -1,6 +1,7 @@
 import './env';
 import express, {
   json,
+  NextFunction,
   Request,
   Response,
 } from 'express';
@@ -26,15 +27,16 @@ app.use('/', router);
 app.use(errorLogger);// подключаем логер ошибок
 app.use(errors());// обработчик ошибок celebrate
 // централизованный обработчик ошибок
-app.use((error: IErrorStatus, _req: Request, res: Response) => {
+app.use((error: IErrorStatus, _req: Request, res: Response, next: NextFunction) => {
   const { statusCode = INTERNAL_SERVER_ERROR, message } = error;
-  return res
+  res
     .status(statusCode)
     .send({
       message: statusCode === INTERNAL_SERVER_ERROR
         ? 'На сервере произошла ошибка'
         : message,
     });
+  next();
 });
 
 //  запуск сервера

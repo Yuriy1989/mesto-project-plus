@@ -129,7 +129,7 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
 
   try {
     const user = await User.findUserByCredentials(email, password);
-    const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET as string, { expiresIn: '7d' });
+    const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET as string || '088c9d35720d3ec0e34ad7d9677bd2ede9892c4434c17a866605d25f8002c4f0', { expiresIn: '7d' });
     return res.status(OK).send({ _id: user._id, token });
   } catch (error) {
     if (error instanceof Unauthorized && error.statusCode === UNAUTHORIZED) {
