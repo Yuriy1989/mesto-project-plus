@@ -91,7 +91,6 @@ export const likeCard = async (req: ITestRequest, res: Response, next: NextFunct
 //  убрать лайк с карточки
 export const dislikeCard = async (req: ITestRequest, res: Response, next: NextFunction) => {
   const id = req.user?._id;
-
   try {
     const dislikeCards = await Card.findByIdAndUpdate(
       req.params.cardId,
