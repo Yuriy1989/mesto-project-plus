@@ -15,11 +15,10 @@ export default (req: SessionRequest, res: Response, next: NextFunction) => {
   let payload;
 
   try {
-    payload = jwt.verify(token, process.env.JWT_SECRET as string);
+    payload = jwt.verify(token, process.env.JWT_SECRET as string || '088c9d35720d3ec0e34ad7d9677bd2ede9892c4434c17a866605d25f8002c4f0');
   } catch (error) {
     return next(new Unauthorized('Необходима авторизация'));
   }
-
   req.user = payload;
 
   next();
